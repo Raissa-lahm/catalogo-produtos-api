@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema({
   name: {
     type: String,
     required: [true, 'Nome é obrigatório'],
-    trim: true, // Remove espaços extras
+    trim: true,
   },
   email: {
     type: String,
@@ -19,16 +19,13 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Senha é obrigatória'],
     minlength: [6, 'Senha deve ter pelo menos 6 caracteres'],
   },
-}, { timestamps: true }); // Adiciona createdAt e updatedAt automaticamente
+}, { timestamps: true });
 
-// Hook: executa ANTES de salvar — criptografa a senha
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next(); // Só criptografa se a senha mudou
+userSchema.pre('save', async function () {
+  if (!this.isModified('password')) return;
   this.password = await bcrypt.hash(this.password, 12);
-  next();
 });
 
-// Método para comparar senha digitada com a senha criptografada
 userSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };

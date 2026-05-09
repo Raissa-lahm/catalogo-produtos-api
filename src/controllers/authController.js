@@ -1,12 +1,10 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 
-// Gera um token JWT com o ID do usuário
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 };
 
-// POST /api/auth/register
 exports.register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -16,7 +14,9 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: 'E-mail já cadastrado.' });
     }
 
-    const user = await User.create({ name, email, password });
+    const user = new User({ name, email, password });
+    await user.save();
+
     const token = generateToken(user._id);
 
     res.status(201).json({
@@ -29,7 +29,6 @@ exports.register = async (req, res) => {
   }
 };
 
-// POST /api/auth/login
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
