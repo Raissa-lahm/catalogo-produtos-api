@@ -1,39 +1,135 @@
-// Importa o Express para criar o roteador
 const express = require('express');
-
-// Cria uma instância do Router do Express
 const router = express.Router();
+const productController = require('../controllers/productController');
+const authMiddleware = require('../middlewares/authMiddleware');
 
-// Importa o middleware de autenticação que protege as rotas
-const protect = require('../middlewares/authMiddleware');
+router.use(authMiddleware);
 
-// Importa todas as funções do controller de produtos
-const {
-  createProduct, getProducts,
-  getProductById, updateProduct, deleteProduct
-} = require('../controllers/productController');
+/**
+ * @swagger
+ * tags:
+ *   name: Produtos
+ *   description: CRUD de produtos (requer autenticação JWT)
+ */
 
-// Aplica o middleware de autenticação em todas as rotas deste arquivo
-// Ou seja, qualquer requisição para /api/products vai passar pelo protect primeiro
-// Se o token não for válido, a requisição é bloqueada antes de chegar no controller
-router.use(protect);
+/**
+ * @swagger
+ * /api/products:
+ *   get:
+ *     summary: Listar todos os produtos
+ *     tags: [Produtos]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de todos os produtos.
+ *       401:
+ *         description: Token não fornecido ou inválido.
+ */
+router.get('/', productController.getProducts);
 
-// Rotas para o caminho /api/products
-// GET /api/products — lista todos os produtos
-// POST /api/products — cria um novo produto
-router.route('/')
-  .get(getProducts)
-  .post(createProduct);
+/**
+ * @swagger
+ * /api/products/{id}:
+ *   get:
+ *     summary: Buscar produto por ID
+ *     tags: [Produtos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Produto encontrado.
+ *       401:
+ *         description: Token não fornecido ou inválido.
+ *       404:
+ *         description: Produto não encontrado.
+ */
+router.get('/:id', productController.getProductById);
 
-// Rotas para o caminho /api/products/:id
-// O :id é um parâmetro dinâmico que representa o ID do produto na URL
-// GET /api/products/:id — busca um produto específico pelo ID
-// PUT /api/products/:id — atualiza os dados de um produto pelo ID
-// DELETE /api/products/:id — deleta um produto pelo ID
-router.route('/:id')
-  .get(getProductById)
-  .put(updateProduct)
-  .delete(deleteProduct);
+/**
+ * @swagger
+ * /api/products:
+ *   post:
+ *     summary: Criar novo produto
+ *     tags: [Produtos]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       201:
+ *         description: Produto criado com sucesso.
+ *       400:
+ *         description: Dados inválidos.
+ *       401:
+ *         description: Token não fornecido ou inválido.
+ */
+router.post('/', productController.createProduct);
 
-// Exporta o roteador para ser usado no server.js
+/**
+ * @swagger
+ * /api/products/{id}:
+ *   put:
+ *     summary: Atualizar produto
+ *     tags: [Produtos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Produto atualizado com sucesso.
+ *       400:
+ *         description: Dados inválidos.
+ *       401:
+ *         description: Token não fornecido ou inválido.
+ *       404:
+ *         description: Produto não encontrado.
+ */
+router.put('/:id', productController.updateProduct);
+
+/**
+ * @swagger
+ * /api/products/{id}:
+ *   delete:
+ *     summary: Deletar produto
+ *     tags: [Produtos]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Produto deletado com sucesso.
+ *       401:
+ *         description: Token não fornecido ou inválido.
+ *       404:
+ *         description: Produto não encontrado.
+ */
+router.delete('/:id', productController.deleteProduct);
+
 module.exports = router;
